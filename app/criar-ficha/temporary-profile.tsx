@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 
 type TemporaryProfile = {
+  share?: {path:string; expires:number};
   hash: string;
   code: string;
   maskedCpf: string;
@@ -82,6 +83,14 @@ export default function TemporaryProfileExperience() {
     } catch { sessionStorage.removeItem(storageKey); }
   }, []);
 
+  const [qr,setQr]=useState("");
+  const [qrError,setQrError]=useState(false);
+  const [busy,setBusy]=useState(false);
+  useEffect(()=>{
+    let live=true;setQr("");setQrError(false);
+    if(active?.share){import("qrcode").then(({default:q})=>q.toDataURL(location.origin+active.share!.path,{width:360,margin:4})).then(v=>{if(live)setQr(v)}).catch(()=>{if(live)setQrError(true)})}
+    return ()=>{live=false};
+  },[active]);
   function update(key: keyof typeof initialForm, value: string) {
     setForm(current => ({...current, [key]: key === "cpf" ? formatCpf(value) : value}));
   }
@@ -119,13 +128,20 @@ export default function TemporaryProfileExperience() {
       contactPhone: form.contactPhone.trim() || "Telefone não informado",
       createdAt: new Intl.DateTimeFormat("pt-BR", {dateStyle: "long", timeStyle: "short"}).format(new Date()),
     };
+    setBusy(true);
+    try {
+      const {hash: _hash,code: _code,maskedCpf: _cpf,birthDate: _birth,createdAt: _created,...publicFields}=profile;
+      const res=await fetch("/api/temporarias",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...publicFields,fictional:true})});
+      if(!res.ok)throw Error();
+      profile.share=await res.json();
+    } catch {setNotice("Não foi possível gerar o link. Seus campos foram mantidos; tente novamente.");return} finally {setBusy(false)}
     const updated = [profile, ...profiles];
     sessionStorage.setItem(storageKey, JSON.stringify(updated));
     setProfiles(updated);
     setActive(profile);
     setForm(initialForm);
     setFictional(false);
-    setNotice("Ficha temporária criada somente neste navegador.");
+    setNotice("Ficha criada. Escaneie o QR Code com outro celular.");
     window.scrollTo({top: 0, behavior: "smooth"});
   }
 
@@ -145,9 +161,12 @@ export default function TemporaryProfileExperience() {
       <section className="profile-native" aria-labelledby="temporary-profile-title">
         {notice && <div className="temporary-status" role="status">{notice}</div>}
         <header className="profile-hero">
-          <div className="profile-context"><span>Ficha temporária</span><span className="demo-badge">Somente nesta sessão</span></div>
+          <div className="profile-context"><span>Ficha temporária</span><span className="demo-badge">Perfil fictício</span></div>
           <div className="profile-person"><div className="native-avatar" aria-hidden="true">{initials}</div><div><h1 id="temporary-profile-title">{active.name}</h1><p className="profile-age">{active.age}</p><p className="profile-updated">Criada em {active.createdAt}</p></div></div>
         </header>
+        {active.share && <section className="native-section"><h2>Escaneie para abrir a ficha</h2>
+          {qr?<img src={qr} width="260" height="260" style={{maxWidth:"100%",height:"auto"}} alt="QR Code desta ficha temporária"/>:<p role="status">{qrError?"Use o link abaixo.":"Preparando QR Code…"}</p>}
+          <p><a href={active.share.path}>Abrir ficha compartilhada</a></p><p>Válida até {new Date(active.share.expires).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}. Depois, crie outra simulação.</p></section>}
         <section className={`allergy-banner ${allergyNeutral ? "allergy-neutral" : ""}`} aria-label="Alergias"><span className="allergy-symbol" aria-hidden="true">{allergyNeutral ? "✓" : "!"}</span><div><h2>{allergyNeutral ? "Alergias" : "Alergia informada"}</h2><strong>{active.allergies}</strong></div></section>
         <section className="native-section identity-section" aria-labelledby="temporary-id-title"><h2 id="temporary-id-title" className="native-section-title">Identificação</h2><div className="native-list">
           <div className="native-row"><span className="row-icon id-code-icon" aria-hidden="true">#</span><div><h3>Código temporário</h3><p>{active.code}</p></div></div>
@@ -167,7 +186,7 @@ export default function TemporaryProfileExperience() {
           <div className="native-row"><span className="row-icon mobility-icon" aria-hidden="true">↔</span><div><h3>Mobilidade</h3><p>{active.mobility}</p></div></div>
           <div className="native-row"><span className="row-icon contact-icon" aria-hidden="true">☎</span><div><h3>Contato de emergência</h3><p>{active.contact} · {active.contactPhone}</p></div></div>
         </div></section>
-        <aside className="temporary-privacy-note"><strong>Simulação educacional</strong><p>Esta ficha existe apenas nesta sessão, não gera QR Code público e não é um cadastro clínico. Use somente dados fictícios.</p></aside>
+        <aside className="temporary-privacy-note"><strong>Simulação educacional</strong><p>Apagar a cópia desta aba não desativa um link já criado. O link expira em uma hora. Use somente dados fictícios.</p></aside>
         <div className="temporary-actions"><button className="primary-button dark" onClick={startAnother}>Criar outra simulação</button><button className="secondary-danger" onClick={clearSession}>Apagar fichas desta sessão</button><a href="/">Voltar ao início</a></div>
       </section>
     </main>;
@@ -178,7 +197,7 @@ export default function TemporaryProfileExperience() {
     <section className="temporary-form-card" aria-labelledby="temporary-form-title">
       <p className="eyebrow">EXPERIÊNCIA TEMPORÁRIA</p>
       <h1 id="temporary-form-title">Crie uma ficha de demonstração.</h1>
-      <p className="temporary-intro">Veja como seria o cadastro do Cuidar ID. Os dados ficam apenas nesta aba e desaparecem quando a sessão for encerrada.</p>
+      <p className="temporary-intro">Veja como seria o cadastro do Cuidar ID. Ao criar a ficha, você recebe um QR Code válido por uma hora. Quem tiver o link poderá ler as informações fictícias em outro celular. O CPF e a data de nascimento não são compartilhados.</p>
       <div className="temporary-warning" role="note"><strong>Não use seus dados reais.</strong><span>Digite somente informações inventadas. O CPF será usado apenas para simular a regra de uma ficha por pessoa.</span></div>
       {notice && <div className="temporary-status error" role="alert">{notice}</div>}
       {profiles.length > 0 && <div className="session-summary"><strong>{profiles.length} ficha{profiles.length > 1 ? "s" : ""} nesta sessão</strong><button type="button" onClick={() => setActive(profiles[0])}>Abrir a mais recente</button></div>}
@@ -204,7 +223,7 @@ export default function TemporaryProfileExperience() {
           <label>Telefone fictício<input maxLength={24} inputMode="tel" placeholder="(11) 90000-0000" value={form.contactPhone} onChange={event => update("contactPhone", event.target.value)} autoComplete="off" /></label>
         </div></fieldset>
         <label className="temporary-consent"><input type="checkbox" checked={fictional} onChange={event => setFictional(event.target.checked)} />Confirmo que todas as informações são inventadas e serão usadas apenas nesta demonstração.</label>
-        <button className="primary-button dark" type="submit">Criar ficha temporária</button>
+        <button className="primary-button dark" disabled={busy} type="submit">{busy?"Gerando QR Code…":"Criar ficha e gerar QR Code"}</button>
       </form>
     </section>
   </main>;

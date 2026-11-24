@@ -4,6 +4,7 @@
   "main": "./worker/index.ts",
   "compatibility_date": "2026-11-24",
   "compatibility_flags": ["nodejs_compat"],
+  "kv_namespaces": [{"binding":"TEMP","id":"15d9512eadc04496aa92e14dac5f9905"}],
   "assets": {
     "binding": "ASSETS"
   }

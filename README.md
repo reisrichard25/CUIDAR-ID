@@ -9,7 +9,7 @@ Todos os nomes, telefones e dados de saúde desta versão são fictícios. O pro
 - Página inicial e páginas próprias de funcionamento, acessibilidade, segurança e projeto.
 - Cinco perfis de demonstração em `/id/001` a `/id/005`.
 - QR Codes gerados para os perfis de demonstração.
-- Criação de ficha temporária no navegador, somente com dados inventados.
+- Ficha fictícia com QR Code gerado no navegador. O Worker guarda apenas os campos de demonstração compartilháveis no KV TEMP por uma hora. CPF, hash e data de nascimento ficam fora do link e do KV.
 - Layout responsivo para celular, tablet e computador.
 
 O painel administrativo foi preservado no código, mas está desativado nesta edição pública. Ele dependia do login e do banco da hospedagem anterior. A demonstração da feira não depende desse painel.

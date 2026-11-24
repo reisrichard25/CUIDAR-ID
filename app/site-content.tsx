@@ -414,7 +414,7 @@ export default function SiteContent({ section = "inicio", profileId }: { section
           <article><span>04</span><div><h3>Quem pode ler?</h3><p>As fichas demonstrativas são públicas. Qualquer pessoa com o link ou QR Code pode consultá-las. O código não é uma senha. Não cadastre dados reais de visitantes ou integrantes.</p></div></article>
           <article><span>05</span><div><h3>Privacidade em um uso real</h3><p>A LGPD é a lei brasileira que protege dados pessoais. Dados de saúde exigem cuidados especiais: finalidade clara, uso somente do necessário e uma base legal adequada. Quando utilizado, o consentimento precisa ser específico e informado. Este protótipo não comprova conformidade com a lei.</p></div></article>
           <article><span>06</span><div><h3>Limites desta versão</h3><p>O painel restringe a edição ao administrador, mas as fichas são públicas. Não há prontuário clínico, verificação médica, serviço de emergência nem garantia de disponibilidade. Um uso real exige revisão técnica, jurídica e de segurança.</p></div></article>
-          <article><span>07</span><div><h3>Ficha temporária</h3><p>A experiência de criação funciona somente na aba aberta, orienta o uso de dados inventados e mascara o CPF. Ela demonstra o fluxo, mas não realiza cadastro real nem garante unicidade fora daquela sessão.</p></div></article>
+          <article><span>07</span><div><h3>Ficha temporária</h3><p>A ficha usa dados inventados. Qualquer pessoa com o QR Code pode abrir a cópia compartilhada por uma hora. O CPF fica fora dessa cópia. Ela demonstra o fluxo, mas não realiza cadastro real nem garante unicidade fora daquela sessão.</p></div></article>
         </div>
       </section>}
 
